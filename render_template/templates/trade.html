@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat with {{receiver_name}}</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+body {
+    margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0b0b0b, #1a1a1a);
+    color: #fff;
+}
+.container {
+    max-width: 700px; margin: 50px auto; padding: 25px;
+    background: #1c1c1c; border-radius: 15px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.8);
+}
+h2 { text-align: center; color: #00ff99; }
+#chat-box {
+    height: 400px; overflow-y: auto; padding: 10px;
+    background: #222; border-radius: 10px;
+    margin-bottom: 15px;
+}
+.message { padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; max-width: 70%; }
+.sent { background: #00ff99; color: #000; margin-left: auto; text-align: right; }
+.received { background: #333; color: #fff; margin-right: auto; text-align: left; }
+input[type="text"] { width: 80%; padding: 10px; border-radius: 10px; border: none; margin-right: 10px; }
+button { padding: 10px 15px; border-radius: 10px; border: none; background: #00ff99; color: #000; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Chat with {{receiver_name}}</h2>
+    <div id="chat-box"></div>
+    <div>
+        <input type="text" id="msg-input" placeholder="Type your message">
+        <button id="send-btn">Send</button>
+    </div>
+</div>
+
+<script>
+const socket = io();
+const chatBox = document.getElementById('chat-box');
+const input = document.getElementById('msg-input');
+const sendBtn = document.getElementById('send-btn');
+
+const sender_email = "{{sender_email}}";
+const receiver_email = "{{receiver_email}}";
+
+socket.emit("join_chat", {"email": sender_email});
+
+// Fetch previous chat
+fetch(`/api/chat_history/${receiver_email}`)
+.then(res=>res.json())
+.then(data=>{
+    if(data.messages){
+        data.messages.forEach(m=>{
+            addMessage(m.sender_email==sender_email?"sent":"received", m.message, m.timestamp);
+        });
+    }
+});
+
+function addMessage(type, text, timestamp){
+    const div = document.createElement('div');
+    div.classList.add('message', type);
+    div.textContent = text + " (" + timestamp + ")";
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+sendBtn.addEventListener('click', ()=>{
+    const msg = input.value.trim();
+    if(!msg) return;
+    socket.emit("send_message", {sender_email, receiver_email, message: msg});
+    input.value = '';
+});
+
+socket.on("receive_message", data=>{
+    if((data.sender==sender_email && data.receiver==receiver_email) ||
+       (data.sender==receiver_email && data.receiver==sender_email)){
+        const type = data.sender==sender_email?"sent":"received";
+        addMessage(type, data.message, data.timestamp);
+    }
+});
+</script>
+</body>
+</html>

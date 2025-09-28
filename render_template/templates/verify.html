@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings - ZestPay</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(135deg,#0e0e0e,#1b1b1b); color:#fff; }
+.container { padding:20px; max-width:1000px; margin:auto; }
+
+/* Settings menu cards */
+.menu { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+.menu .card {
+  flex:1 1 200px;
+  background:#111; border-radius:12px; padding:20px; text-align:center;
+  cursor:pointer; transition:0.3s; box-shadow:0 6px 20px rgba(0,0,0,0.3);
+}
+.menu .card:hover { background:#00c853; color:#fff; transform:translateY(-4px); }
+.menu .card i { font-size:28px; margin-bottom:12px; display:block; }
+
+/* Section detail card */
+.section {
+  display:none; background:#fff; color:#222; padding:20px; border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:700px; margin:30px auto;
+}
+.section h3 { margin-top:0; }
+input, textarea { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:6px; }
+button {
+  padding:10px 14px; background:#00c853; color:#fff; border:none; border-radius:6px;
+  cursor:pointer; font-weight:bold; transition:0.3s;
+}
+button:hover { background:#009c3d; }
+.back { display:block; margin-bottom:15px; color:#00c853; cursor:pointer; text-decoration:none; font-weight:bold; }
+
+/* Responsive */
+@media(max-width:768px){
+  .menu{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Main Menu -->
+  <div id="menu" class="menu">
+    <div class="card" onclick="openSection('profile')"><i class="fa fa-user"></i>Edit Profile</div>
+    <div class="card" onclick="openSection('account')"><i class="fa fa-id-card"></i>Manage Account</div>
+    <div class="card" onclick="openSection('support')"><i class="fa fa-headset"></i>Customer Care</div>
+    <div class="card" onclick="openSection('notify')"><i class="fa fa-bell"></i>Notifications</div>
+    <div class="card" onclick="openSection('security')"><i class="fa fa-lock"></i>Security</div>
+  </div>
+
+  <!-- Sections -->
+  <div id="profile" class="section">
+    <a class="back" onclick="goBack()">← Back to Settings</a>
+    <h3>Edit Profile</h3>
+    <label>First name</label>
+    <input id="firstName">
+    <label>Last name</label>
+    <input id="lastName">
+    <label>Phone</label>
+    <input id="phone">
+    <label>Email</label>
+    <input id="email">
+    <button onclick="saveProfile()">Save changes</button>
+    <p id="msgProfile"></p>
+  </div>
+
+  <div id="account" class="section">
+    <a class="back" onclick="goBack()">← Back to Settings</a>
+    <h3>Manage Account</h3>
+    <p>You can deactivate or delete your account here.</p>
+    <button>Deactivate</button>
+    <button style="background:#d32f2f;">Delete Account</button>
+  </div>
+
+  <div id="support" class="section">
+    <a class="back" onclick="goBack()">← Back to Settings</a>
+    <h3>Customer Care</h3>
+    <p>📧 support@zestpay.com</p>
+    <p>📞 +234 800 123 4567</p>
+  </div>
+
+  <div id="notify" class="section">
+    <a class="back" onclick="goBack()">← Back to Settings</a>
+    <h3>Notifications</h3>
+    <label><input type="checkbox"> Email Alerts</label><br>
+    <label><input type="checkbox"> SMS Alerts</label>
+  </div>
+
+  <div id="security" class="section">
+    <a class="back" onclick="goBack()">← Back to Settings</a>
+    <h3>Security</h3>
+    <label>Change Password</label>
+    <input type="password" placeholder="New Password">
+    <input type="password" placeholder="Confirm Password">
+    <button>Update Password</button>
+  </div>
+</div>
+
+<script>
+function openSection(id){
+  document.getElementById("menu").style.display="none";
+  document.getElementById(id).style.display="block";
+}
+function goBack(){
+  document.querySelectorAll('.section').forEach(s=>s.style.display="none");
+  document.getElementById("menu").style.display="flex";
+}
+
+async function saveProfile(){
+  const body = {
+    firstName: document.getElementById('firstName').value,
+    lastName: document.getElementById('lastName').value,
+    phone: document.getElementById('phone').value,
+    email: document.getElementById('email').value
+  };
+  const res = await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await res.json();
+  let msg = document.getElementById('msgProfile');
+  if(j.status==='ok'){ msg.style.color='green'; msg.textContent='Saved successfully'; }
+  else { msg.style.color='red'; msg.textContent='Error saving profile'; }
+}
+</script>
+
+</body>
+</html>

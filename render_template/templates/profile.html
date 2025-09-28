@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile - ZestPay</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin:0; padding:0;
+    background: #111;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    color:#fff;
+  }
+
+  .card{
+    background:#000;
+    border-radius:15px;
+    max-width:600px;
+    width:90%;
+    padding:30px 40px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    text-align:center;
+    color:#fff;
+  }
+
+  .profile-pic{
+    width:120px; height:120px;
+    border-radius:50%;
+    background:#222;
+    margin:0 auto 15px;
+    border:3px solid #00c853;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:55px;
+    color:#00c853;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .profile-pic:hover{
+    transform: scale(1.08);
+    box-shadow: 0 0 25px rgba(0,200,83,0.7);
+  }
+
+  h2{ font-size:26px; color:#00c853; margin-bottom:20px; letter-spacing:1px; }
+
+  #profileArea p{
+    font-size:16px; margin:10px 0; text-align:left;
+  }
+
+  .btn-section{
+    display:flex; justify-content:center; gap:20px; margin-top:25px; flex-wrap:wrap;
+  }
+  .btn-section button{
+    background:#00c853; color:#fff; border:none; border-radius:10px;
+    padding:12px 20px; cursor:pointer; font-weight:600; display:flex; align-items:center; gap:8px;
+    transition:0.3s;
+  }
+  .btn-section button:hover{ background:#009c3d; }
+
+  .support-icons{
+    display:flex; justify-content:center; gap:20px; margin-top:15px; flex-wrap:wrap;
+  }
+  .support-icons a{
+    display:flex; align-items:center; justify-content:center;
+    width:50px; height:50px;
+    border-radius:50%;
+    background:#222; color:#00c853;
+    font-size:24px;
+    transition:0.3s;
+    text-decoration:none;
+  }
+  .support-icons a:hover{ background:#00c853; color:#000; }
+
+  #sectionContent{
+    margin-top:20px;
+    text-align:center;
+  }
+
+  @media(max-width:480px){
+    .card{ padding:20px; }
+    h2{ font-size:22px; }
+    #profileArea p{ font-size:14px; }
+    .btn-section button{ padding:10px 15px; font-size:14px; }
+    .support-icons a{ width:45px; height:45px; font-size:20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="profile-pic">
+    <i class="fa-solid fa-user"></i>
+  </div>
+
+  <h2 id="userName">Profile</h2>
+  <div id="profileArea">Loading...</div>
+
+  <div class="btn-section">
+    <button onclick="showSection('manage')"><i class="fa-solid fa-gear"></i> Manage Account</button>
+    <button onclick="showSection('support')"><i class="fa-solid fa-headset"></i> Support</button>
+  </div>
+
+  <div id="sectionContent"></div>
+</div>
+
+<script>
+  // Load profile
+  async function loadProfile(){
+    try{
+      const res = await fetch('/api/profile');
+      if(res.status === 401){ window.location.href = '/login'; return; }
+      const j = await res.json();
+      if(j.status === 'ok'){
+        const p = j.profile;
+        document.getElementById('profileArea').innerHTML = `
+          <p><strong>Name:</strong> ${p.firstName || '-'} ${p.lastName || ''}</p>
+          <p><strong>Email:</strong> ${p.email}</p>
+          <p><strong>Phone:</strong> ${p.phone || '-'}</p>
+        `;
+        document.getElementById('userName').textContent = p.firstName || p.email;
+      } else { document.getElementById('profileArea').innerText = 'Could not load profile'; }
+    } catch(err){
+      console.error(err);
+      document.getElementById('profileArea').innerText = 'Error loading profile';
+    }
+  }
+  loadProfile();
+
+  // Section toggle
+  function showSection(section){
+    const content = document.getElementById('sectionContent');
+    if(section==='manage'){
+      content.innerHTML = `
+        <h3>Manage Account</h3>
+        <p>Update your profile, change password, and manage settings.</p>
+        <a href="/settings" style="color:#00c853;"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+      `;
+    } else if(section==='support'){
+      content.innerHTML = `
+        <h3>Support</h3>
+        <p>Need help? Contact us via:</p>
+        <div class="support-icons">
+          <a href="https://wa.me/1234567890" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://facebook.com" target="_blank" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank" title="X"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="mailto:support@zestpay.com" title="Gmail"><i class="fa-solid fa-envelope"></i></a>
+        </div>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>

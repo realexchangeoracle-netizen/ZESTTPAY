@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZestPay - Reset Password</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #000, #111);
+      color: #fff;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0;
+    }
+    .box {
+      background: #1a1a1a;
+      padding: 35px;
+      border-radius: 15px;
+      width: 380px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    h2 { margin-bottom: 15px; color: #00ff88; font-weight: 600; }
+    input {
+      width: 100%; padding: 12px; margin: 8px 0;
+      border-radius: 8px; border: none; font-size: 15px;
+      background: #111; color: #fff; outline: none;
+    }
+    input:focus { border: 1px solid #00ff88; }
+    button {
+      width: 100%; padding: 12px; margin-top: 12px;
+      border-radius: 8px; border: none; font-size: 16px;
+      background: #00ff88; color: #000; font-weight: bold;
+      cursor: pointer; transition: 0.3s;
+    }
+    button:hover { background: #00cc66; }
+    .hidden { display: none; }
+    .msg { font-size: 14px; margin-top: 8px; }
+    .success { color: #00ff88; }
+    .error { color: #ff4d4d; }
+
+    /* Spinner for OTP verifying */
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #00ff88;
+      border-radius: 50%;
+      width: 28px; height: 28px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Input group */
+    .input-group {
+      position: relative;
+    }
+    .show-hide {
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #00ff88;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    /* Strength meter */
+    .strength {
+      height: 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      background: #333;
+      overflow: hidden;
+    }
+    .strength-bar {
+      height: 100%;
+      width: 0;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <!-- Step 1: Email -->
+    <div id="step-email">
+      <h2>Forgot Password</h2>
+      <input type="email" id="email" placeholder="Enter your email" required>
+      <button onclick="sendEmail()">Send OTP</button>
+      <p id="msg1" class="msg"></p>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="step-otp" class="hidden">
+      <h2>Enter OTP</h2>
+      <p id="otp-info" style="font-size:14px;color:#bbb;"></p>
+      <input type="text" id="otp" placeholder="6-digit code" maxlength="6" required oninput="autoVerify()">
+      <div id="verify-status"></div>
+    </div>
+
+    <!-- Step 3: Reset Password -->
+    <div id="step-reset" class="hidden">
+      <h2>New Password</h2>
+      <div class="input-group">
+        <input type="password" id="new_pass" placeholder="New Password" required oninput="checkStrength(this.value)">
+        <span class="show-hide" onclick="toggleShowHide('new_pass', this)">Show</span>
+      </div>
+      <div class="strength"><div id="strength-bar" class="strength-bar"></div></div>
+
+      <div class="input-group">
+        <input type="password" id="confirm_pass" placeholder="Confirm Password" required>
+        <span class="show-hide" onclick="toggleShowHide('confirm_pass', this)">Show</span>
+      </div>
+      <button onclick="resetPass()">Change Password</button>
+      <p id="msg3" class="msg"></p>
+    </div>
+  </div>
+
+  <script>
+    // Step 1: Send Email
+    async function sendEmail(){
+      const email = document.getElementById("email").value;
+      try {
+        let res = await fetch("/forgot", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({email})
+        });
+        let data = await res.json();
+        document.getElementById("msg1").innerText = data.message;
+        if(data.status === "ok"){
+          document.getElementById("step-email").classList.add("hidden");
+          document.getElementById("step-otp").classList.remove("hidden");
+          document.getElementById("otp-info").innerText = "A code has been sent to: " + email;
+        }
+      } catch(e){
+        document.getElementById("msg1").innerText = "❌ Error sending email.";
+      }
+    }
+
+    // Step 2: Auto verify OTP
+    function autoVerify(){
+      const otp = document.getElementById("otp").value;
+      if(otp.length === 6){
+        document.getElementById("verify-status").innerHTML = '<div class="spinner"></div><p>Verifying...</p>';
+        setTimeout(async () => {
+          try {
+            let res = await fetch("/verify", {
+              method: "POST",
+              headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({otp})
+            });
+            let data = await res.json();
+            if(data.status === "ok"){
+              document.getElementById("verify-status").innerHTML = '<p class="success">✅ Verified successfully!</p>';
+              setTimeout(()=>{
+                document.getElementById("step-otp").classList.add("hidden");
+                document.getElementById("step-reset").classList.remove("hidden");
+              }, 1500);
+            } else {
+              document.getElementById("verify-status").innerHTML = '<p class="error">❌ Invalid code!</p>';
+              document.getElementById("otp").value = "";
+            }
+          } catch(e){
+            document.getElementById("verify-status").innerHTML = '<p class="error">❌ Error verifying!</p>';
+          }
+        }, 3000);
+      }
+    }
+
+    // Step 3: Reset Password
+    async function resetPass(){
+      const newPass = document.getElementById("new_pass").value;
+      const confirmPass = document.getElementById("confirm_pass").value;
+      if(newPass !== confirmPass){
+        document.getElementById("msg3").innerText = "❌ Passwords do not match!";
+        return;
+      }
+      try {
+        let res = await fetch("/reset", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({new_password:newPass, confirm_password:confirmPass})
+        });
+        let data = await res.json();
+        if(data.status === "ok"){
+          document.getElementById("msg3").innerText = "✅ Password changed!";
+          setTimeout(()=> window.location.href="/login", 2000);
+        } else {
+          document.getElementById("msg3").innerText = data.message;
+        }
+      } catch(e){
+        document.getElementById("msg3").innerText = "❌ Error resetting password.";
+      }
+    }
+
+    // Show/Hide Password (explicit)
+    function toggleShowHide(id, el){
+      const input = document.getElementById(id);
+      if(input.type === "password"){
+        input.type = "text";
+        el.innerText = "Hide";
+      } else {
+        input.type = "password";
+        el.innerText = "Show";
+      }
+    }
+
+    // Password strength checker
+    function checkStrength(pass){
+      const bar = document.getElementById("strength-bar");
+      let strength = 0;
+      if(pass.length >= 6) strength++;
+      if(/[A-Z]/.test(pass)) strength++;
+      if(/[0-9]/.test(pass)) strength++;
+      if(/[^A-Za-z0-9]/.test(pass)) strength++;
+
+      let width = ["0%","25%","50%","75%","100%"][strength];
+      let colors = ["#333","#ff4d4d","#ff9933","#00ccff","#00ff88"];
+      bar.style.width = width;
+      bar.style.background = colors[strength];
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ZestPay Rates</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: linear-gradient(135deg, #000, #111, #222);
+      color: #fff;
+    }
+    .topbar {
+      background: #111;
+      color: #fff;
+      padding: 16px 24px;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #333;
+    }
+    .container {
+      padding: 30px;
+      max-width: 1100px;
+      margin: auto;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+    }
+    h2 i { margin-right: 8px; color: #ff7f50; }
+    .rates-list {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+      background: #1c1c1c;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .rates-list th, .rates-list td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #333;
+      text-align: left;
+      color: #ddd;
+    }
+    .rates-list th { background: #222; font-weight: 600; color: #ff7f50; }
+    .rates-list tr:hover { background: #2a2a2a; cursor: pointer; }
+    .countdown {
+      font-size: 14px;
+      color: #bbb;
+      margin-top: 8px;
+    }
+    .calculator {
+      margin-top: 30px;
+      padding: 20px;
+      background: #1c1c1c;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .calculator h3 {
+      margin: 0 0 15px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      color: #38a169;
+    }
+    .calculator h3 i { margin-right: 8px; }
+    .calc-input {
+      display: flex; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .calc-input input, .calc-input select {
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-size: 15px;
+      flex: 1;
+      background: #000;
+      color: #fff;
+    }
+    .calc-result {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    a.back {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #ff7f50;
+      font-weight: 600;
+    }
+
+    /* Fullscreen loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+    }
+    .loading span {
+      display:inline-block;
+      font-size: 30px;
+      font-weight:bold;
+      color:#00c853;
+      animation: bounce 1.2s infinite;
+    }
+    .loading span:nth-child(2) { animation-delay:0.2s; }
+    .loading span:nth-child(3) { animation-delay:0.4s; }
+    .loading span:nth-child(4) { animation-delay:0.6s; }
+    .loading span:nth-child(5) { animation-delay:0.8s; }
+    .loading span:nth-child(6) { animation-delay:1s; }
+    .loading span:nth-child(7) { animation-delay:1.2s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.8); opacity:0.5; }
+      40% { transform: scale(1.3); opacity:1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span><i class="fa-solid fa-chart-line"></i> ZestPay Rates</span>
+    <span id="countdown" class="countdown">Refreshing in 20:00</span>
+  </div>
+
+  <div class="container">
+    <h2><i class="fa-solid fa-coins"></i> Live Crypto Rates</h2>
+
+    <table class="rates-list" id="ratesTable">
+      <thead>
+        <tr>
+          <th>Coin</th>
+          <th>Price (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-coin="tether"><td>USDT</td><td id="price-tether">-</td></tr>
+        <tr data-coin="usd-coin"><td>USDC</td><td id="price-usd-coin">-</td></tr>
+        <tr data-coin="bitcoin"><td>BTC</td><td id="price-bitcoin">-</td></tr>
+        <tr data-coin="ethereum"><td>ETH</td><td id="price-ethereum">-</td></tr>
+        <tr data-coin="binancecoin"><td>BNB</td><td id="price-binancecoin">-</td></tr>
+        <tr data-coin="solana"><td>SOL</td><td id="price-solana">-</td></tr>
+      </tbody>
+    </table>
+
+    <div class="calculator">
+      <h3><i class="fa-solid fa-calculator"></i> Converter (₦)</h3>
+      <div class="calc-input">
+        <input type="number" id="cryptoAmount" placeholder="Enter amount">
+        <select id="cryptoSelect">
+          <option value="tether">USDT</option>
+          <option value="usd-coin">USDC</option>
+          <option value="bitcoin">BTC</option>
+          <option value="ethereum">ETH</option>
+          <option value="binancecoin">BNB</option>
+          <option value="solana">SOL</option>
+        </select>
+      </div>
+      <div class="calc-result" id="calcResult">₦0</div>
+    </div>
+
+    <a href="/dashboard" class="back"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+  </div>
+
+  <!-- ZestPay Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading">
+      <span>Z</span><span>E</span><span>S</span><span>T</span><span>P</span><span>A</span><span>Y</span><span>
+    </div>
+    <p style="color:#bbb; margin-top:15px;">Connecting to WhatsApp...</p>
+  </div>
+
+<script>
+  let refreshInterval = 20 * 60; // 20 minutes in seconds
+  const countdownEl = document.getElementById("countdown");
+  const coins = ["tether","usd-coin","bitcoin","ethereum","binancecoin","solana"];
+  const priceEls = {};
+  let usdToNgn = 1600; // fallback in case API fails
+
+  coins.forEach(c => {
+    priceEls[c] = document.getElementById("price-" + c);
+  });
+
+  async function fetchPrices() {
+    try {
+      const ids = coins.join(',') + ',usd';
+      const resp = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd,ngn`);
+      const json = await resp.json();
+      usdToNgn = json.usd?.ngn || usdToNgn;
+      coins.forEach(c => {
+        const price = json[c]?.usd;
+        if (price !== undefined) {
+          priceEls[c].textContent = "$" + price.toLocaleString();
+        }
+      });
+      calculate(); // update calculator
+      localStorage.setItem("lastFetch", Date.now().toString());
+    } catch (err) {
+      console.error("Error fetching prices:", err);
+    }
+  }
+
+  function startCountdown() {
+    let lastFetch = parseInt(localStorage.getItem("lastFetch")) || 0;
+    let elapsed = Math.floor((Date.now() - lastFetch) / 1000);
+    let countdown = refreshInterval - elapsed;
+    if (countdown <= 0) {
+      fetchPrices();
+      countdown = refreshInterval;
+    }
+    setInterval(() => {
+      const minutes = Math.floor(countdown / 60);
+      const seconds = countdown % 60;
+      countdownEl.textContent = `Refreshing in ${minutes}:${seconds.toString().padStart(2,'0')}`;
+      countdown--;
+      if (countdown < 0) {
+        fetchPrices();
+        countdown = refreshInterval;
+      }
+    }, 1000);
+  }
+
+  // Initial fetch if first time
+  if (!localStorage.getItem("lastFetch")) {
+    fetchPrices();
+  }
+
+  startCountdown();
+
+  // Click to WhatsApp with ZestPay loading
+  document.querySelectorAll("#ratesTable tbody tr").forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const coin = row.getAttribute("data-coin");
+      const overlay = document.getElementById("loadingOverlay");
+      overlay.style.display = "flex";
+      setTimeout(()=>{
+        window.open(`https://wa.me/2348026544598?text=I%20want%20to%20buy%20${coin.toUpperCase()}`, "_blank");
+        overlay.style.display = "none";
+      }, 3000); // show loading for 3s
+    });
+  });
+
+  // Calculator
+  document.getElementById("cryptoAmount").addEventListener("input", calculate);
+  document.getElementById("cryptoSelect").addEventListener("change", calculate);
+
+  function calculate(){
+    const amount = parseFloat(document.getElementById("cryptoAmount").value) || 0;
+    const coin = document.getElementById("cryptoSelect").value;
+    const priceText = priceEls[coin].textContent;
+    if (!priceText || priceText === "-" ) {
+      document.getElementById("calcResult").textContent = "N/A";
+      return;
+    }
+    const price = parseFloat(priceText.replace(/[^0-9\.]/g, "")); 
+    const valueNaira = amount * price * usdToNgn;
+    document.getElementById("calcResult").textContent = "₦" + valueNaira.toLocaleString();
+  }
+</script>
+</body>
+</html>

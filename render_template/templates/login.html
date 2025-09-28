@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZestPay Login</title>
+<style>
+  body {
+    margin:0; padding:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #000, #111);
+    color:#fff; display:flex;
+    justify-content:center; align-items:center;
+    height:100vh;
+  }
+  .container {
+    width:100%; max-width:400px;
+    background:rgba(0,0,0,0.8);
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 0 15px rgba(0,255,100,0.3);
+    text-align:center;
+  }
+  h2 { margin-bottom:20px; }
+  .input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  input {
+    flex: 1;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:6px;
+    background:#222; 
+    color:#fff;
+  }
+  input:focus { outline:none; box-shadow:0 0 8px #00c853; }
+  .show-hide {
+    margin-left: -60px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #00c853;
+    background: none;
+    border: none;
+  }
+  .btn {
+    width:100%; padding:12px;
+    border:none; border-radius:6px;
+    background:linear-gradient(90deg,#00c853,#19a24c);
+    font-weight:bold; cursor:pointer;
+    transition:0.3s;
+  }
+  .btn:hover { transform:scale(1.05); }
+  .error-msg { color:#ff4c4c; font-size:13px; }
+  .success-msg { color:#00c853; font-size:14px; }
+  .loading { display:none; margin-top:20px; }
+  .loading span {
+    display:inline-block;
+    font-size:22px; font-weight:bold;
+    color:#00c853;
+    animation: bounce 1.2s infinite;
+  }
+  .loading span:nth-child(2) { animation-delay:0.2s; }
+  .loading span:nth-child(3) { animation-delay:0.4s; }
+  .loading span:nth-child(4) { animation-delay:0.6s; }
+  .loading span:nth-child(5) { animation-delay:0.8s; }
+  .loading span:nth-child(6) { animation-delay:1s; }
+  .loading span:nth-child(7) { animation-delay:1.2s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.8); opacity:0.5; }
+    40% { transform: scale(1.3); opacity:1; }
+  }
+  .forgot-link {
+    margin-top:15px;
+    font-size:14px;
+    color:#00c853;
+    display:none;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>LOGIN</h2>
+  
+  <!-- Email input styled same as password -->
+  <div class="input-container">
+    <input type="email" id="email" placeholder="Email" required>
+  </div>
+  
+  <!-- Password input with show/hide -->
+  <div class="input-container">
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="button" class="show-hide" onclick="togglePassword()">Show</button>
+  </div>
+
+  <button class="btn" onclick="loginUser()">Login</button>
+  <p id="message" class="error-msg"></p>
+  <p id="forgot" class="forgot-link" onclick="goToReset()">Forgot Password? Click here to reset</p>
+
+  <!-- ZestPay Loading Animation -->
+  <div class="loading" id="loading">
+    <span>Z</span><span>E</span><span>S</span><span>T</span>
+    <span>P</span><span>A</span><span>Y</span>
+  </div>
+</div>
+
+<script>
+let loginAttempts = 0;
+
+function togglePassword() {
+  const passwordInput = document.getElementById("password");
+  const toggleBtn = document.querySelector(".show-hide");
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    toggleBtn.textContent = "Hide";
+  } else {
+    passwordInput.type = "password";
+    toggleBtn.textContent = "Show";
+  }
+}
+
+function goToReset() {
+  window.location.href = "/forgot"; // <-- replace with your reset page
+}
+
+async function loginUser() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const message = document.getElementById("message");
+  const loading = document.getElementById("loading");
+  const forgot = document.getElementById("forgot");
+
+  if (!email || !password) {
+    message.innerText = "Please fill all fields.";
+    return;
+  }
+
+  if (!navigator.onLine) {
+    message.innerText = "No internet connection. Please check your data.";
+    return;
+  }
+
+  try {
+    loading.style.display = "block"; 
+    message.innerText = "";
+
+    const res = await fetch("http://127.0.0.1:5000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (data.status === "ok") {
+      message.className = "success-msg";
+      message.innerText = "Login successful!";
+      loginAttempts = 0; // reset attempts
+      setTimeout(()=> window.location.href="/dashboard", 2500);
+    } else {
+      loading.style.display = "none"; 
+      message.className = "error-msg";
+      message.innerText = "Invalid email or password";
+      loginAttempts++;
+      if (loginAttempts >= 5) {
+        forgot.style.display = "block";
+        message.innerText = "Too many failed attempts!";
+      }
+    }
+  } catch (err) {
+    loading.style.display = "none"; 
+    message.innerText = "Server error. Check your internet connection.";
+  }
+}
+
+window.addEventListener("offline", () => {
+  document.getElementById("message").innerText = "You are offline. Please connect.";
+});
+</script>
+
+</body>
+</html>

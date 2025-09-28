@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard - ZestPay</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* === GENERAL === */
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0; background: linear-gradient(135deg,#000000,#080001);
+  color: #222; font-size: 16px;
+}
+a { text-decoration:none; }
+
+/* === TOP BAR === */
+.top {
+  background: linear-gradient(135deg,#111,#222);
+  color: #fff; padding: 16px 30px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  position: sticky; top:0; z-index:10; flex-wrap: wrap;
+}
+.top strong { font-size:26px; letter-spacing:1px; color:#00c853; }
+nav { display:flex; flex-wrap:wrap; gap:10px; }
+nav a { color:#fff; font-weight:500; font-size:17px; display:inline-flex; align-items:center; transition:color 0.3s;}
+nav a i { margin-right:6px; }
+nav a:hover { color:#00c853; }
+
+/* === CONTAINER === */
+.container { padding:30px; max-width:1400px; margin:0 auto; }
+.grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
+
+/* === CARD === */
+.card {
+  background:#fff; padding:22px; border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08); margin-bottom:20px;
+  transition:transform 0.2s, box-shadow 0.2s;
+}
+.card:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,0.12); }
+.card h3, .card h4 {
+  margin:0 0 14px; font-weight:600; color:#333;
+  border-bottom:1px solid #eee; padding-bottom:8px;
+  display:flex; align-items:center; font-size:20px;
+}
+.card h3 i, .card h4 i { margin-right:8px; color:#00c853; }
+.card p { font-size:16px; line-height:1.6; color:#333; text-align:justify; }
+
+/* === BUTTONS === */
+.btn {
+  padding:9px 16px; background:#00c853; color:#fff;
+  border-radius:8px; font-weight:600; cursor:pointer;
+  transition:background 0.3s, transform 0.2s;
+}
+.btn:hover { background:#009c3d; transform:scale(1.05); }
+
+/* === MODALS === */
+.modal {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.6); display:flex;
+  justify-content:center; align-items:center;
+  visibility:hidden; opacity:0; transition:0.3s; z-index:1000;
+}
+.modal.show { visibility:visible; opacity:1; }
+.modal-content {
+  background:#fff; padding:30px; border-radius:12px; text-align:center;
+  max-width:320px; width:90%; box-shadow:0 6px 20px rgba(0,0,0,0.3);
+}
+.modal-content h3 { margin:0 0 10px; }
+.modal-content p { margin-bottom:15px; }
+.modal-content .btn { margin:6px; }
+
+/* === LOADER === */
+.loading { display:flex; justify-content:center; gap:4px; margin-bottom:15px; }
+.loading span { font-size:26px; font-weight:bold; color:#00c853; animation:bounce 1.2s infinite; display:inline-block;}
+.loading span:nth-child(2){animation-delay:0.2s;}
+.loading span:nth-child(3){animation-delay:0.4s;}
+.loading span:nth-child(4){animation-delay:0.6s;}
+.loading span:nth-child(5){animation-delay:0.8s;}
+.loading span:nth-child(6){animation-delay:1s;}
+.loading span:nth-child(7){animation-delay:1.2s;}
+@keyframes bounce {0%,80%,100%{transform:scale(0.8);opacity:0.5;}40%{transform:scale(1.3);opacity:1;}}
+
+#globalLoader {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(255,255,255,0.9); display:flex;
+  justify-content:center; align-items:center; visibility:hidden; opacity:0;
+  transition:0.3s; z-index:2000;
+}
+#globalLoader.show { visibility:visible; opacity:1; }
+
+/* === AI CHAT WIDGET === */
+#aiWidget {
+  width:360px; max-width:90%; bottom:20px; right:20px;
+  position:fixed; z-index:3000; border-radius:12px; overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,0.25); font-size:16px;
+  transition:all 0.3s ease;
+}
+#aiHeader {
+  background:#00c853; color:#fff; cursor:pointer;
+  padding:12px 16px; font-weight:600; font-size:18px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+#aiHeader .closeAI { font-size:18px; cursor:pointer; transition:color 0.3s; }
+#aiHeader .closeAI:hover{ color:#ff5252; }
+
+#aiChat {
+  display:none; flex-direction:column;
+  background:#000000; border-top:2px solid #00c853; color: white;
+  max-height:450px; min-height:200px; overflow:hidden; border-radius:0 0 12px 12px;
+}
+#messages { max-height:350px; overflow-y:auto; padding:12px; }
+#messages p { margin:6px 0; line-height:1.4; font-size:15px; }
+#messages p strong{color:#00c853;}
+#aiInput{flex:1; padding:10px; font-size:15px; border-radius:6px; border:1px solid #ccc; outline:none;}
+#aiSend{padding:10px 14px; font-size:15px; border-radius:6px; border:none; background:#00c853; color:#fff; cursor:pointer;}
+#aiSend:hover{background:#009c3d; transform:scale(1.05);}
+@media(max-width:600px){
+  #aiWidget{width:90%; right:5%; bottom:10px;}
+  #aiInput{font-size:13px;}
+  #aiSend{padding:7px 10px;font-size:13px;}
+  #aiHeader{font-size:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top">
+  <div><strong><i class="fa-solid fa-bolt"></i> ZestPay</strong></div>
+  <nav>
+    <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="/settings"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="/rates"><i class="fa-solid fa-chart-line"></i> Rates</a>
+    <a href="/cards"><i class="fa-solid fa-credit-card"></i> Cards</a>
+    <a href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+  </nav>
+</div>
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+  <h2 id="welcome" style="color:#0b8b20; margin-bottom:20px;">Welcome</h2>
+  <div class="grid">
+    <!-- LEFT SIDE -->
+    <div>
+      <div class="card">
+        <h3><i class="fa-solid fa-id-card"></i> Account</h3>
+        <div id="accountInfo" class="profile-box"><p>Loading profile...</p></div>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-circle-info"></i> About</h3>
+        <p>
+          ZestPay is more than just a platform – it is a movement built to redefine how people buy, sell, 
+          and exchange value in the digital age. At its core, ZestPay is designed to simplify transactions, 
+          create opportunities, and build trust between buyers and sellers both online and offline.<br><br>
+          We believe that money should not be complicated. Every day, people have something they want to sell 
+          – whether it’s a product, service, or idea – and there are always others who need exactly that. 
+          The problem is usually the process: lack of trust, long delays, poor communication, and high 
+          transaction costs. ZestPay solves these problems by making buying and selling fast, transparent, and reliable.
+        </p>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-credit-card"></i> Cards</h3>
+        <p>💳 Coming soon — card management UI.</p>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div>
+      <div class="card">
+        <h4><i class="fa-solid fa-bolt"></i> Quick actions</h4>
+        <p><a href="/settings">⚙️ Edit Profile</a></p>
+        <p><a href="/rates">📈 View Rates</a></p>
+      </div>
+      <div class="card">
+        <h4><i class="fa-solid fa-briefcase"></i> Services</h4>
+        <ul style="list-style:none; padding:0; margin:0; font-size:15px; line-height:1.6;">
+          <li>✔️ Buy & Sell digital assets</li>
+          <li>✔️ Secure escrow transactions</li>
+          <li>✔️ Fast and reliable payments</li>
+          <li>✔️ Real-time market rates</li>
+          <li>✔️ 24/7 AI-powered support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal">
+  <div class="modal-content" id="modalContent">
+    <h3>Logout</h3>
+    <p>Are you sure you want to logout?</p>
+    <button class="btn" onclick="confirmLogout()">Yes</button>
+    <button class="btn" style="background:#777;" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- GLOBAL LOADER -->
+<div id="globalLoader">
+  <div class="loading">
+    <span>Z</span><span>E</span><span>S</span><span>T</span><span>P</span><span>A</span><span>Y</span>
+  </div>
+</div>
+
+<!-- OFFLINE MODAL -->
+<div id="offlineModal" class="modal">
+  <div class="modal-content">
+    <h3 style="color:red;"><i class="fa-solid fa-wifi"></i> No Internet</h3>
+    <p>Please check your data connection to continue.</p>
+    <button class="btn" onclick="closeOffline()">OK</button>
+  </div>
+</div>
+
+<!-- AI CHAT WIDGET -->
+<div id="aiWidget">
+  <div id="aiHeader">
+    <span><i class="fa-solid fa-robot"></i> ZestPay AI Assistant</span>
+    <span class="closeAI">&times;</span>
+  </div>
+  <div id="aiChat">
+    <div id="messages"></div>
+    <div style="display:flex; gap:6px; padding:10px;">
+      <input id="aiInput" type="text" placeholder="Ask me anything..." />
+      <button id="aiSend" class="btn">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === PROFILE LOAD ===
+async function loadProfile(){
+  const res = await fetch('/api/profile');
+  if(res.status===401){ window.location.href='/login'; return; }
+  const j = await res.json();
+  if(j.status!=='ok'){ document.getElementById('accountInfo').innerText='Could not load profile'; return; }
+  const p=j.profile;
+  const name=(p.firstName||p.email).trim();
+  document.getElementById('welcome').textContent='Welcome, '+name;
+  document.getElementById('accountInfo').innerHTML=`
+    <p><strong>Name:</strong> ${p.firstName||'-'} ${p.lastName||''}</p>
+    <p><strong>Email:</strong> ${p.email}</p>
+    <p><strong>Phone:</strong> ${p.phone||'-'}</p>
+  `;
+}
+loadProfile();
+
+// === LOGOUT MODAL ===
+const logoutBtn=document.getElementById("logoutBtn");
+const logoutModal=document.getElementById("logoutModal");
+const modalContent=document.getElementById("modalContent");
+logoutBtn.addEventListener("click",e=>{
+  e.preventDefault();
+  if(!navigator.onLine){ showOffline(); return; }
+  logoutModal.classList.add("show");
+});
+function closeModal(){ logoutModal.classList.remove("show"); }
+function confirmLogout(){
+  modalContent.innerHTML=`<div class="loading"><span>Z</span><span>E</span><span>S</span><span>T</span><span>P</span><span>A</span><span>Y</span></div>
+  <p style="color:#555;">Logging you out...</p>`;
+  setTimeout(()=>{ window.location.href="/login"; },2500);
+}
+
+// === GLOBAL LOADER ===
+const globalLoader=document.getElementById("globalLoader");
+document.querySelectorAll("a, .btn").forEach(el=>{
+  el.addEventListener("click",function(e){
+    const href=el.getAttribute("href");
+    if(href && href!=="#" && !el.id.includes("logoutBtn")){
+      if(!navigator.onLine){ e.preventDefault(); showOffline(); return; }
+      e.preventDefault();
+      globalLoader.classList.add("show");
+      setTimeout(()=>{ window.location.href=href; },2000);
+    }
+  });
+});
+
+// === OFFLINE MODAL ===
+const offlineModal=document.getElementById("offlineModal");
+function showOffline(){ offlineModal.classList.add("show"); }
+function closeOffline(){ offlineModal.classList.remove("show"); }
+
+// === AI CHAT ===
+const aiHeader=document.getElementById("aiHeader");
+const aiChat=document.getElementById("aiChat");
+const messagesDiv=document.getElementById("messages");
+const aiInput=document.getElementById("aiInput");
+const aiSend=document.getElementById("aiSend");
+const aiClose=document.querySelector("#aiHeader .closeAI");
+
+aiHeader.addEventListener("click",(e)=>{
+  if(!e.target.classList.contains('closeAI')){
+    aiChat.style.display = aiChat.style.display==="flex" ? "none":"flex";
+  }
+});
+aiClose.addEventListener("click",(e)=>{ e.stopPropagation(); aiChat.style.display="none"; });
+
+function appendMessage(sender,text,isUser=false){
+  const msg=document.createElement("div");
+  msg.classList.add("msg");
+  msg.innerHTML=`<p><strong>${sender}:</strong> ${text}</p>`;
+  if(isUser){
+    const seenTag=document.createElement("span");
+    seenTag.classList.add("seenTag");
+    seenTag.style.cssText="font-size:12px;color:green;display:none;margin-left:6px;";
+    seenTag.textContent="Seen"; msg.appendChild(seenTag);
+  }
+  messagesDiv.appendChild(msg);
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+  return msg;
+}
+
+async function sendAIMessage(message){
+  if(!navigator.onLine){ appendMessage("ZESTPAY AI",""); showOffline(); return; }
+  const userMsg=appendMessage("You",message,true);
+  const typingMsg=document.createElement("p");
+  typingMsg.innerHTML=`<strong>ZESTPAY AI:</strong> <em>Typing...</em>`;
+  messagesDiv.appendChild(typingMsg);
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+
+  try{
+    const res=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:message})});
+    const data=await res.json();
+    if(data.action==="redirect" && data.redirect_url){ typingMsg.innerHTML=`<strong>AI:</strong> ${data.reply}`;
+      setTimeout(()=>{ window.location.href=data.redirect_url; },1500);
+    }
+    else if(data.action==="message"){ typingMsg.innerHTML=`<strong>AI:</strong> ${data.reply}`;}
+    else if(data.error){ typingMsg.innerHTML=`<strong>AI:</strong> <em>${data.error}</em>`;}
+    else{ typingMsg.innerHTML=`<strong>AI:</strong> <em>Sorry, unexpected response.</em>`; }
+    const seenTag=userMsg.querySelector(".seenTag");
+    if(seenTag) seenTag.style.display="inline";
+    messagesDiv.scrollTop=messagesDiv.scrollHeight;
+  }catch(err){ typingMsg.innerHTML=`<strong>AI:</strong> <em>I Cant Answer This Question..</em>`; }
+}
+
+aiSend.addEventListener("click",()=>{ const msg=aiInput.value.trim(); if(msg){ sendAIMessage(msg); aiInput.value=""; }});
+aiInput.addEventListener("keypress",e=>{ if(e.key==="Enter") aiSend.click(); });
+</script>
+</body>
+</html>

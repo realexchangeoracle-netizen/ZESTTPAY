@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZestPay Cards</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI', sans-serif; }
+
+  body {
+    background: #000; /* black background */
+    color: #fff;
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* Tabs */
+  .tabs {
+    display:flex;
+    justify-content:center;
+    margin:20px 0;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+  }
+  .tab {
+    flex:1;
+    padding:14px 0;
+    cursor:pointer;
+    text-align:center;
+    font-weight:600;
+    transition:0.3s;
+    color: rgba(255,255,255,0.7);
+  }
+  .tab.active {
+    color: #00f07f; /* green */
+    border-bottom: 3px solid #00f07f;
+  }
+  .tab:hover { color:#00f07f; }
+
+  /* Card Section */
+  .card-section {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:25px;
+    padding: 0 20px 50px 20px;
+  }
+  .tab-content {
+    display:none;
+    max-width: 360px;
+    width:100%;
+    animation: fadeIn 0.4s ease-in-out;
+    text-align:center;
+    background: rgba(0,255,127,0.05); /* subtle green overlay */
+    border-radius: 15px;
+    padding:20px;
+  }
+  .tab-content.active { display:block; }
+
+  @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+  .title { font-size:22px; font-weight:700; margin:10px 0; color:#00f07f; }
+  .features { list-style:none; padding:0; margin:15px 0; font-size:15px; color: #a3f7c4; }
+  .features li { margin:8px 0; line-height:1.6; }
+
+  .create-btn {
+    padding:12px 26px;
+    background: linear-gradient(90deg,#00f07f,#00c264);
+    color:#000;
+    font-weight:700;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+  }
+  .create-btn:hover { background: linear-gradient(90deg,#00c264,#00f07f); }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    display:flex;
+    justify-content:space-around;
+    padding:12px 0;
+    background:#111;
+    border-top:1px solid rgba(255,255,255,0.2);
+  }
+  .bottom-nav a {
+    text-decoration:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    color: rgba(255,255,255,0.6);
+    font-size:14px;
+    transition:0.3s;
+  }
+  .bottom-nav a.active { color:#00f07f; font-weight:600; }
+  .bottom-nav i { font-size:20px; margin-bottom:4px; }
+
+  /* Responsive */
+  @media(max-width:600px){
+    .card-section { flex-direction:column; align-items:center; gap:20px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('virtual')">Virtual Cards</button>
+    <button class="tab" onclick="showTab('physical')">Physical Cards</button>
+  </div>
+
+  <div class="card-section">
+    <!-- Virtual Cards -->
+    <div id="virtual" class="tab-content active">
+      <h2 class="title">Virtual ZestPay Card</h2>
+      <ul class="features">
+        <li>💳 Shop online globally</li>
+        <li>💵 Spend in multiple currencies</li>
+        <li>⚡ Instant issuance, no waiting</li>
+      </ul>
+      <button class="create-btn">Coming Soon</button>
+    </div>
+
+    <!-- Physical Cards -->
+    <div id="physical" class="tab-content">
+      <h2 class="title">Physical ZestPay Card</h2>
+      <ul class="features">
+        <li>🏦 Use anywhere, anytime</li>
+        <li>💳 Swipe & tap for payments globally</li>
+        <li>📦 Delivered to your doorstep</li>
+      </ul>
+      <button class="create-btn">Coming Soon</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="/dashboard"><i class="fas fa-home"></i>Home</a>
+    <a href="/rates"><i class="fas fa-coins"></i>Rates</a>
+    <a href="/cards" class="active"><i class="fas fa-credit-card"></i>Cards</a>
+    <a href="/settings"><i class="fas fa-user"></i>Account</a>
+  </div>
+
+  <script>
+    function showTab(tabId){
+      document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+      if(tabId==='virtual') document.querySelector('.tab:nth-child(1)').classList.add('active');
+      else document.querySelector('.tab:nth-child(2)').classList.add('active');
+    }
+  </script>
+</body>
+</html>

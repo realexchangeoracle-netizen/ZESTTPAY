@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings - ZestPay</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+body {
+  margin:0; font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#0d0d0d,#1b1b1b);
+  color:#fff;
+}
+.container { padding:20px; max-width:1000px; margin:auto; }
+
+/* Greeting */
+.welcome {
+  text-align:center;
+  font-size:22px;
+  margin-bottom:25px;
+  color:#00c853;
+  font-weight:bold;
+}
+
+/* Settings menu cards */
+.menu {
+  display:flex; flex-wrap:wrap; gap:20px; justify-content:center;
+}
+.menu .card {
+  flex:1 1 200px;
+  background:#111; border-radius:12px; padding:20px; text-align:center;
+  cursor:pointer; transition:0.3s; box-shadow:0 6px 20px rgba(0,0,0,0.3);
+}
+.menu .card:hover { background:#00c853; color:#fff; transform:translateY(-4px); }
+.menu .card i { font-size:28px; margin-bottom:12px; display:block; }
+
+/* Section detail card */
+.section {
+  display:none; background:#111; color:#eee; padding:20px; border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.3); max-width:700px; margin:30px auto;
+}
+.section h3 { margin-top:0; color:#00c853; }
+input, select {
+  width:100%; padding:10px; margin:8px 0;
+  border:1px solid #333; border-radius:6px;
+  background:#222; color:#fff;
+}
+button {
+  padding:10px 14px; background:#00c853; color:#fff; border:none;
+  border-radius:6px; cursor:pointer; font-weight:bold; transition:0.3s;
+}
+button:hover { background:#009c3d; }
+.back {
+  display:block; margin-bottom:15px; color:#00c853;
+  cursor:pointer; text-decoration:none; font-weight:bold;
+}
+
+/* Eye icon for password toggle */
+.password-wrapper { position:relative; }
+.password-wrapper input { width:100%; padding-right:40px; }
+.password-wrapper i {
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  cursor:pointer; color:#888;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .menu{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="welcome" id="welcomeMsg">Welcome, User</div>
+
+  <!-- Main Menu -->
+  <div id="menu" class="menu">
+    <div class="card" onclick="openSection('profile')"><i class="fa fa-user"></i>Edit Profile</div>
+    <div class="card" onclick="openSection('password')"><i class="fa fa-lock"></i>Change Password</div>
+    <div class="card" onclick="openSection('notify')"><i class="fa fa-bell"></i>Notifications</div>
+    <div class="card" onclick="openSection('security')"><i class="fa fa-shield-halved"></i>Security</div>
+    <div class="card" onclick="openSection('prefs')"><i class="fa fa-gear"></i>Preferences</div>
+  </div>
+
+  <!-- Sections -->
+  <div id="profile" class="section">
+    <a class="back" onclick="goBack()">← Back</a>
+    <h3>Edit Profile</h3>
+    <label>First name</label>
+    <input id="firstName">
+    <label>Last name</label>
+    <input id="lastName">
+    <label>Phone</label>
+    <input id="phone">
+    <label>Email</label>
+    <input id="email">
+    <button onclick="saveProfile()">Save changes</button>
+    <p id="msgProfile"></p>
+  </div>
+
+  <div id="password" class="section">
+    <a class="back" onclick="goBack()">← Back</a>
+    <h3>Change Password</h3>
+    <div class="password-wrapper">
+      <input id="newPass" type="password" placeholder="New Password">
+      <i class="fa fa-eye" onclick="togglePass('newPass', this)"></i>
+    </div>
+    <div class="password-wrapper">
+      <input id="confirmPass" type="password" placeholder="Confirm Password">
+      <i class="fa fa-eye" onclick="togglePass('confirmPass', this)"></i>
+    </div>
+    <button onclick="savePassword()">Update Password</button>
+    <p id="msgPassword"></p>
+  </div>
+
+  <div id="notify" class="section">
+    <a class="back" onclick="goBack()">← Back</a>
+    <h3>Notifications</h3>
+    <label><input type="checkbox" id="notifyEmail"> Email Alerts</label><br>
+    <label><input type="checkbox" id="notifySMS"> SMS Alerts</label><br>
+    <button onclick="saveNotify()">Save</button>
+    <p id="msgNotify"></p>
+  </div>
+
+  <div id="security" class="section">
+    <a class="back" onclick="goBack()">← Back</a>
+    <h3>Security</h3>
+    <label><input type="checkbox" id="twoFA"> Enable Two-Factor Authentication</label><br>
+    <button onclick="saveSecurity()">Save</button>
+    <p id="msgSecurity"></p>
+  </div>
+
+  <div id="prefs" class="section">
+    <a class="back" onclick="goBack()">← Back</a>
+    <h3>Preferences</h3>
+    <label>Theme</label>
+    <select id="theme">
+      <option value="dark">Dark</option>
+      <option value="light">Light</option>
+    </select>
+    <label>Language</label>
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="fr">French</option>
+    </select>
+    <button onclick="savePrefs()">Save</button>
+    <p id="msgPrefs"></p>
+  </div>
+</div>
+
+<script>
+// Open/close sections
+function openSection(id){
+  document.getElementById("menu").style.display="none";
+  document.getElementById(id).style.display="block";
+}
+function goBack(){
+  document.querySelectorAll('.section').forEach(s=>s.style.display="none");
+  document.getElementById("menu").style.display="flex";
+}
+
+// Toggle password visibility
+function togglePass(id, el){
+  const input = document.getElementById(id);
+  if(input.type === "password"){
+    input.type = "text"; el.classList.remove("fa-eye"); el.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password"; el.classList.remove("fa-eye-slash"); el.classList.add("fa-eye");
+  }
+}
+
+// Fetch profile on load
+async function loadProfile(){
+  try{
+    const res = await fetch("/api/profile");
+    const j = await res.json();
+    if(j.status === "ok"){
+      const p = j.profile;
+      document.getElementById("welcomeMsg").textContent = `Welcome, ${p.firstName || "User"}`;
+      document.getElementById("firstName").value = p.firstName || "";
+      document.getElementById("lastName").value = p.lastName || "";
+      document.getElementById("phone").value = p.phone || "";
+      document.getElementById("email").value = p.email || "";
+      document.getElementById("notifyEmail").checked = p.notify_email;
+      document.getElementById("notifySMS").checked = p.notify_sms;
+      document.getElementById("twoFA").checked = p.two_fa;
+      document.getElementById("theme").value = p.theme || "dark";
+      document.getElementById("lang").value = p.language || "en";
+    }
+  } catch(err){ console.error(err); }
+}
+loadProfile();
+
+// Save functions
+async function saveProfile(){
+  const body = {
+    firstName: document.getElementById('firstName').value,
+    lastName: document.getElementById('lastName').value,
+    phone: document.getElementById('phone').value,
+    email: document.getElementById('email').value
+  };
+  const res = await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await res.json();
+  document.getElementById("msgProfile").textContent = j.status==="ok" ? "Profile updated" : "Error";
+  loadProfile();
+}
+
+async function savePassword(){
+  const pass = document.getElementById('newPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+  let msg = document.getElementById("msgPassword");
+  if(pass !== confirm){ msg.textContent="Passwords do not match"; return; }
+  const res = await fetch('/api/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass})});
+  const j = await res.json();
+  msg.textContent = j.status==="ok" ? "Password updated" : "Error";
+}
+
+async function saveNotify(){
+  const body = {
+    email: document.getElementById('notifyEmail').checked,
+    sms: document.getElementById('notifySMS').checked
+  };
+  const res = await fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await res.json();
+  document.getElementById("msgNotify").textContent = j.status==="ok" ? "Notifications updated" : "Error";
+}
+
+async function saveSecurity(){
+  const res = await fetch('/api/security',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({twoFA:document.getElementById('twoFA').checked})});
+  const j = await res.json();
+  document.getElementById("msgSecurity").textContent = j.status==="ok" ? "Security updated" : "Error";
+}
+
+async function savePrefs(){
+  const body = {
+    theme: document.getElementById('theme').value,
+    lang: document.getElementById('lang').value
+  };
+  const res = await fetch('/api/prefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await res.json();
+  document.getElementById("msgPrefs").textContent = j.status==="ok" ? "Preferences updated" : "Error";
+}
+</script>
+
+</body>
+</html>
